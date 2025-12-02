@@ -83,7 +83,7 @@ Este proyecto implementa una infraestructura completa de Big Data para el análi
 **Características clave:**
 - ✅ **Idempotencia**: Usa `appid` como ID único
 - ✅ **Índice diario rotativo**: Facilita la gestión de datos históricos
-- ✅ **Enriquecimiento**: Extrae metadata de requisitos PC con GROK
+- ✅ **Enriquecimiento**: Extrae metadata de requisitos PC y Datos de el .log con GROK
 - ✅ **Seguridad**: Conexión HTTPS con validación completa de certificados
 
 ---
