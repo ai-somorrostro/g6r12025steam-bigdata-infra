@@ -106,12 +106,12 @@
 #   path.dead_letter_queue:
 
 
-# Pipeline 1: Los Juegos (Datos de negocio + IA)
+# Pipeline 1: Los Juegos 
 - pipeline.id: steam_ingestion
   path.config: "/home/g6/reto/logstash-9.2.1/config/Datos.conf"
   pipeline.workers: 2  # Le damos potencia para procesar vectores
 
-# Pipeline 2: Los Logs (Monitorización + Grok)
+# Pipeline 2: Los Logs 
 - pipeline.id: grok-logs
   path.config: "/home/g6/reto/logstash-9.2.1/config/Logs.conf"
   pipeline.workers: 1  # Mantener orden en los logs
