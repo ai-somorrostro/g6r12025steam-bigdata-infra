@@ -1,0 +1,39 @@
+{
+      "id": "JmdB2ZoBHVbb80fUHprF",
+      "name": "logstash_scraper_key",
+      "type": "rest",
+      "creation": 1764581514950,
+      "expiration": 1767173514950,
+      "invalidated": false,
+      "username": "elastic",
+      "realm": "reserved",
+      "realm_type": "reserved",
+      "metadata": {},
+      "role_descriptors": {
+        "logstash_scraper_role": {
+          "cluster": [
+            "all"
+          ],
+          "indices": [
+            {
+              "names": [
+                "scraper_logs-*"
+              ],
+              "privileges": [
+                "create_index",
+                "write",
+                "read",
+                "manage"
+              ],
+              "allow_restricted_indices": false
+            }
+          ],
+          "applications": [],
+          "run_as": [],
+          "metadata": {},
+          "transient_metadata": {
+            "enabled": true
+          }
+        }
+      }
+    },

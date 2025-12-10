@@ -1,0 +1,36 @@
+{
+      "id": "hqQJypoBqiFKKsx-mbaD",
+      "name": "logstash_ingestion_key_new",
+      "type": "rest",
+      "creation": 1764326218116,
+      "invalidated": false,
+      "username": "elastic",
+      "realm": "reserved",
+      "realm_type": "reserved",
+      "metadata": {},
+      "role_descriptors": {
+        "logstash_writer_role": {
+          "cluster": [
+            "monitor"
+          ],
+          "indices": [
+            {
+              "names": [
+                "steam_games-*"
+              ],
+              "privileges": [
+                "write",
+                "create_index"
+              ],
+              "allow_restricted_indices": false
+            }
+          ],
+          "applications": [],
+          "run_as": [],
+          "metadata": {},
+          "transient_metadata": {
+            "enabled": true
+          }
+        }
+      }
+    },
