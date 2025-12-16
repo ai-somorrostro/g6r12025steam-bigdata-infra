@@ -321,4 +321,9 @@ curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.1
 # Logstash 9.2.1
 curl -O https://artifacts.elastic.co/downloads/logstash/logstash-9.2.1-linux-x86_64.tar.gz
 
+
+# luego descomprimir con
+tar -xzf elasticsearch-9.2.1-linux-x86_64.tar.gz
+tar -xzf logstash-9.2.1-linux-x86_64.tar.gz
+
 ```
