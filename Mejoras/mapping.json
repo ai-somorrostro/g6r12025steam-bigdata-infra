@@ -1,0 +1,95 @@
+{
+  "properties": {
+    "header_image": {
+      "index": false,
+      "type": "keyword"
+    },
+    "price_initial_eur": {
+      "type": "float"
+    },
+    "short_description": {
+      "analyzer": "steam_html_analyzer",
+      "type": "text"
+    },
+    "website": {
+      "index": false,
+      "type": "keyword"
+    },
+    "discount_pct": {
+      "type": "integer"
+    },
+    "developers": {
+      "type": "keyword"
+    },
+    "vector_embedding": {
+      "dims": 768,
+      "similarity": "cosine",
+      "index": true,
+      "type": "dense_vector"
+    },
+    "recommendations_total": {
+      "type": "long"
+    },
+    "achievements_list": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    },
+    "metacritic_score": {
+      "type": "integer"
+    },
+    "detailed_description": {
+      "analyzer": "steam_html_analyzer",
+      "type": "text"
+    },
+    "release_date": {
+      "type": "date"
+    },
+    "scraped_at": {
+      "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis",
+      "type": "date"
+    },
+    "genres": {
+      "type": "keyword"
+    },
+    "steam_id": {
+      "type": "long"
+    },
+    "is_free": {
+      "type": "boolean"
+    },
+    "name": {
+      "analyzer": "standard",
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "ignore_above": 256,
+          "type": "keyword"
+        }
+      }
+    },
+    "publishers": {
+      "type": "keyword"
+    },
+    "achievements_count": {
+      "type": "integer"
+    },
+    "pc_requirements_min": {
+      "index": false,
+      "type": "text"
+    },
+    "categories": {
+      "type": "keyword"
+    },
+    "price_eur": {
+      "type": "float"
+    },
+    "release_date_text": {
+      "index": false,
+      "type": "keyword"
+    }
+  }
+}

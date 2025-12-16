@@ -1,0 +1,36 @@
+{
+  "index": {
+    "lifecycle": {
+      "name": "logstash-policy"
+    },
+    "analysis": {
+      "filter": {
+        "spanish_stemmer": {
+          "type": "stemmer",
+          "language": "light_spanish"
+        },
+        "spanish_stop": {
+          "type": "stop",
+          "stopwords": "_spanish_"
+        }
+      },
+      "analyzer": {
+        "steam_html_analyzer": {
+          "filter": [
+            "lowercase",
+            "asciifolding",
+            "spanish_stop",
+            "spanish_stemmer"
+          ],
+          "char_filter": [
+            "html_strip"
+          ],
+          "type": "custom",
+          "tokenizer": "standard"
+        }
+      }
+    },
+    "number_of_shards": "1",
+    "number_of_replicas": "2"
+  }
+}
