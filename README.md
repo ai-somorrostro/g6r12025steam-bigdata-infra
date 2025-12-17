@@ -311,19 +311,214 @@ sudo systemctl start logstash
 
 # Para ¡¡¡VALIDACION!!!
 
-**Usar estos comandos para descargar los tar.gz de elastic y logstash**
+**Usar estos comandos para descargar elastic y logstash**
 
 ```bash
 
 # Elasticsearch 9.2.1
-curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.1-linux-x86_64.tar.gz
+
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.2-linux-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.2-linux-x86_64.tar.gz.sha512
+shasum -a 512 -c elasticsearch-9.2.2-linux-x86_64.tar.gz.sha512
+tar -xzf elasticsearch-9.2.2-linux-x86_64.tar.gz
+cd elasticsearch-9.2.2/
 
 # Logstash 9.2.1
-curl -O https://artifacts.elastic.co/downloads/logstash/logstash-9.2.1-linux-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/logstash/logstash-9.2.2-linux-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/logstash/logstash-9.2.2-linux-x86_64.tar.gz.sha512
+shasum -a 512 -c logstash-9.2.2-linux-x86_64.tar.gz.sha512
+tar -xzf logstash-9.2.2-linux-x86_64.tar.gz
+cd logstash-9.2.2/
 
-
-# luego descomprimir con
-tar -xzf elasticsearch-9.2.1-linux-x86_64.tar.gz
-tar -xzf logstash-9.2.1-linux-x86_64.tar.gz
+# Iniciar elastic
+bin/elasticsearch
 
 ```
+
+**Copiar a un block de notas la pasword de elastic**
+
+**entrar logsatsh, crear el datos.conf y pegar esto dentro**
+
+```yaml
+
+input {
+  # Lectura del archivo .ndjson
+  file {
+    path => "/home/lander/valReto/scraper/data_output/steam-games-data-vect.ndjson"  <----- Cambiar el path al archivo real
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    codec => json
+  }
+}
+
+filter {
+  # --- 1. Procesamiento de fechas ---
+  if [release_date] {
+    date {
+      match => [ "release_date", "yyyy-MM-dd" ]
+      target => "release_date"
+      timezone => "UTC"
+    }
+  }
+
+  # --- 2. Grok para extraer requisitos mínimos de PC ---
+  
+  grok {
+    match => { 
+      "pc_requirements_min" => [
+        # Intenta capturar un patrón más completo, que es común
+        "SO: .*?%{DATA:min_os}\. Procesador: %{DATA:min_cpu}\. Memoria: .*?%{NUMBER:min_ram_gb:int} GB de RAM Gráficos: .*?%{DATA:min_gpu} DirectX: .*?%{DATA:min_directx}.*",
+        # Patrón para los que no tienen el SO
+        "Procesador: .*?%{DATA:min_cpu} Memoria: .*?%{NUMBER:min_ram_gb:int} GB de RAM Gráficos: .*?%{DATA:min_gpu} DirectX: .*?%{DATA:min_directx}.*"
+      ]
+    }
+    tag_on_failure => [ "grok_pc_fail" ]
+    remove_field => ["pc_requirements_min"] 
+  }
+
+  mutate {
+    # Convertir campos numéricos y booleanos.
+    convert => {
+      "price_eur"          => "float"
+      "price_initial_eur"  => "float"
+      "discount_pct"       => "integer"
+      "metacritic_score"   => "integer"
+      "recommendations_total" => "integer"
+      "achievements_count" => "integer"
+      "is_free"            => "boolean"
+      "steam_id"           => "integer"
+      "min_ram_gb"         => "integer"
+      "vector_embedding" => "float" 
+    }
+    
+
+    rename => {
+      "steam_id"  => "appid"
+      "price_eur" => "price_final"
+    }
+    
+    # Limpieza final de campos no necesarios 
+    remove_field => [
+      "message",
+      "@version",
+      "host",
+      "path",
+      "type",
+      "tags", 
+      "event",
+      "message" 
+    ]
+  }
+
+  ruby {
+    code => '
+      price = event.get("price_final")
+      is_free = event.get("is_free")
+
+      if is_free == true || (price && price == 0)
+        event.set("price_category", "Gratis")
+      elsif price && price < 15.0
+        event.set("price_category", "Barato")
+      elsif price && price < 40.0
+        event.set("price_category", "Normal")
+      else
+        event.set("price_category", "Premium")
+      end
+    '
+  }
+
+  mutate {
+    add_field => { "last_updated" => "%{@timestamp}" }
+  }
+  
+  date {
+    match => ["last_updated", "ISO8601"]
+    target => "last_updated"
+  }
+}
+
+output {
+  elasticsearch {
+    index => "steam_games-%{+yyyy.MM.dd}" 
+    
+    # CORRECCIÓN 1: Faltaban las barras // después de https:
+    hosts => ["https://localhost:9200"]
+    
+    # CORRECCIÓN 2: Cambio de API Key a Usuario/Pass
+    user => "elastic"
+    password => "A2*dwvdR4O4BDc6DN_a4"  <----- Cambiar a la contraseña de elastic
+    
+    # Configuración SSL/TLS
+    ssl_certificate_authorities => ["/home/lander/valReto/elasticsearch-9.2.2/config/certs/http_ca.crt"]    <----- Cambiar el path al archivo real del certificado
+    
+    # Si te da errores de certificado en local, puedes cambiar esto a "none" temporalmente
+    ssl_verification_mode => "full" 
+    
+    document_id => "%{appid}"
+    
+    # Evita duplicados o problemas si el documento ya existe
+    action => "update"
+    doc_as_upsert => true
+  }
+  
+  # Descomenta esto si quieres ver por pantalla qué está pasando
+  stdout { codec => rubydebug }
+}
+
+```
+
+**Ejecutar este comando en la TERMINAL de ELASTIC para generar el mapping**
+
+Cambiar esto por la contraseña de elastic: (elastic:A2*dwvdR4O4BDc6DN_a4 <---- Esto)
+
+```bash
+
+curl -k -u elastic:A2*dwvdR4O4BDc6DN_a4 \ 
+-X PUT "https://localhost:9200/_index_template/steam_games_template" \
+-H 'Content-Type: application/json' \
+-d'
+{
+  "index_patterns": ["steam_games-*"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "vector_embedding": {
+          "type": "dense_vector",
+          "dims": 768,
+          "index": true,
+          "similarity": "cosine"
+        },
+        "price_final": { "type": "float" },
+        "release_date": { "type": "date" },
+        "name": { "type": "text", "analyzer": "standard" },
+        "detailed_description": { "type": "text", "analyzer": "spanish" }
+      }
+    }
+  }
+}
+'
+
+```
+
+**Iniciar logastash en su terminal**
+
+Poner el path de el datos.conf aqui ---> (config/datos.conf)
+
+```bash
+
+bin/logastash -f config/datos.conf
+
+```
+
+
+**Por ultimo comprobar que se han subido los datos**
+
+Cambiar la contraseña de elastic aqui ---> (elastic:A2*dwvdR4O4BDc6DN_a4)
+
+```bash
+
+curl -k -u elastic:A2*dwvdR4O4BDc6DN_a4 -X GET "https://localhost:9200/_cat/indices/steam_games-*?v"
+
+```
+
+
